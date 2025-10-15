@@ -14,14 +14,14 @@ public class AlarmRing : MonoBehaviour
 
     private void OnEnable()
     {
-        _triggerZone.OnRobberEntered += Ring;
-        _triggerZone.OnRobberExited += StopRing;
+        _triggerZone.RobberEntered += Ring;
+        _triggerZone.RobberExited += StopRing;
     }
 
     private void OnDisable()
     {
-        _triggerZone.OnRobberEntered -= Ring;
-        _triggerZone.OnRobberExited -= StopRing;
+        _triggerZone.RobberEntered -= Ring;
+        _triggerZone.RobberExited -= StopRing;
     }
 
     private IEnumerator IncreaseVolume()
@@ -35,16 +35,30 @@ public class AlarmRing : MonoBehaviour
         }
     }
 
+    private IEnumerator DecreaseVolume()
+    {
+        int minValue = 0;
+
+        while (_alarmAudioSource.volume > minValue)
+        {
+            _alarmAudioSource.volume = Mathf.MoveTowards(_alarmAudioSource.volume, minValue, Time.deltaTime * _changeSpeed);
+            yield return null;
+        }
+
+        _alarmAudioSource.Stop();
+    }
+
     private void Ring()
     {
         _alarmAudioSource.loop = true;
         _alarmAudioSource.Play();
         StartCoroutine(IncreaseVolume());
+        StopCoroutine(DecreaseVolume());
     }
 
     private void StopRing()
     {
-        _alarmAudioSource.volume = 0;
-        _alarmAudioSource.Stop();
+        StartCoroutine(DecreaseVolume());
+        StopCoroutine(IncreaseVolume());
     }
 }

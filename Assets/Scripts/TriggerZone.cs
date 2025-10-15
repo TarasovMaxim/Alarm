@@ -3,18 +3,18 @@ using UnityEngine;
 
 public class TriggerZone : MonoBehaviour
 {
-    public event Action OnRobberEntered;
-    public event Action OnRobberExited;
+    public event Action RobberEntered;
+    public event Action RobberExited;
 
     private void OnTriggerEnter(Collider collider)
     {
         if (collider.TryGetComponent<Robber>(out Robber robber))
-            OnRobberEntered?.Invoke();
+            RobberEntered?.Invoke();
     }
 
     private void OnTriggerExit(Collider collider)
     {
         if (collider.TryGetComponent<Robber>(out Robber robber))
-            OnRobberExited?.Invoke();
+            RobberExited?.Invoke();
     }
 }
