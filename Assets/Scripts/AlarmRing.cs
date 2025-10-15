@@ -1,8 +1,10 @@
+using System.Collections;
 using UnityEngine;
 
 public class AlarmRing : MonoBehaviour
 {
-    [SerializeField] AudioSource _alarmAudioSource;
+    [SerializeField] private AudioSource _alarmAudioSource;
+    [SerializeField] private TriggerZone _triggerZone;
     private float _changeSpeed = 0.1f;
 
     private void Awake()
@@ -10,27 +12,39 @@ public class AlarmRing : MonoBehaviour
         _alarmAudioSource.volume = 0;
     }
 
-    private void OnTriggerStay(Collider collider)
+    private void OnEnable()
     {
-        if (collider.TryGetComponent<Robber>(out Robber robber))
-            _alarmAudioSource.volume = Mathf.MoveTowards(_alarmAudioSource.volume, 1, Time.deltaTime * _changeSpeed);
+        _triggerZone.OnRobberEntered += Ring;
+        _triggerZone.OnRobberExited += StopRing;
     }
 
-    private void OnTriggerEnter(Collider collider)
+    private void OnDisable()
     {
-        if (collider.TryGetComponent<Robber>(out Robber robber))
+        _triggerZone.OnRobberEntered -= Ring;
+        _triggerZone.OnRobberExited -= StopRing;
+    }
+
+    private IEnumerator IncreaseVolume()
+    {
+        int maxValue = 1;
+
+        while (_alarmAudioSource.volume < maxValue)
         {
-            _alarmAudioSource.loop = true;
-            _alarmAudioSource.Play();
+            _alarmAudioSource.volume = Mathf.MoveTowards(_alarmAudioSource.volume, maxValue, Time.deltaTime * _changeSpeed);
+            yield return null;
         }
     }
 
-    private void OnTriggerExit(Collider collider)
+    private void Ring()
     {
-        if (collider.TryGetComponent<Robber>(out Robber robber)!)
-        {
-            _alarmAudioSource.volume = 0;
-            _alarmAudioSource.Stop();
-        }
+        _alarmAudioSource.loop = true;
+        _alarmAudioSource.Play();
+        StartCoroutine(IncreaseVolume());
+    }
+
+    private void StopRing()
+    {
+        _alarmAudioSource.volume = 0;
+        _alarmAudioSource.Stop();
     }
 }
