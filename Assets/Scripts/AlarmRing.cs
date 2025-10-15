@@ -6,6 +6,7 @@ public class AlarmRing : MonoBehaviour
     [SerializeField] private AudioSource _alarmAudioSource;
     [SerializeField] private TriggerZone _triggerZone;
     private float _changeSpeed = 0.1f;
+    private Coroutine _volumeCoroutine;
 
     private void Awake()
     {
@@ -24,41 +25,39 @@ public class AlarmRing : MonoBehaviour
         _triggerZone.RobberExited -= StopRing;
     }
 
-    private IEnumerator IncreaseVolume()
+    private IEnumerator ChangeVolume(float value)
     {
-        int maxValue = 1;
+        float tolerance = 0.01f;
 
-        while (_alarmAudioSource.volume < maxValue)
+        while (Mathf.Abs(_alarmAudioSource.volume - value) > tolerance)
         {
-            _alarmAudioSource.volume = Mathf.MoveTowards(_alarmAudioSource.volume, maxValue, Time.deltaTime * _changeSpeed);
-            yield return null;
-        }
-    }
-
-    private IEnumerator DecreaseVolume()
-    {
-        int minValue = 0;
-
-        while (_alarmAudioSource.volume > minValue)
-        {
-            _alarmAudioSource.volume = Mathf.MoveTowards(_alarmAudioSource.volume, minValue, Time.deltaTime * _changeSpeed);
+            _alarmAudioSource.volume = Mathf.MoveTowards(_alarmAudioSource.volume, value, Time.deltaTime * _changeSpeed);
             yield return null;
         }
 
-        _alarmAudioSource.Stop();
+        if (_alarmAudioSource.volume < tolerance)
+            _alarmAudioSource.Stop();
     }
 
     private void Ring()
     {
+        float maxValue = 1f;
         _alarmAudioSource.loop = true;
         _alarmAudioSource.Play();
-        StartCoroutine(IncreaseVolume());
-        StopCoroutine(DecreaseVolume());
+
+        if (_volumeCoroutine != null)
+            StopCoroutine(_volumeCoroutine);
+
+        _volumeCoroutine = StartCoroutine(ChangeVolume(maxValue));
     }
 
     private void StopRing()
     {
-        StartCoroutine(DecreaseVolume());
-        StopCoroutine(IncreaseVolume());
+        float minValue = 0f;
+
+        if (_volumeCoroutine != null)
+            StopCoroutine(_volumeCoroutine);
+
+        _volumeCoroutine = StartCoroutine(ChangeVolume(minValue));
     }
 }
