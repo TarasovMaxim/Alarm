@@ -4,25 +4,12 @@ using UnityEngine;
 public class AlarmRing : MonoBehaviour
 {
     [SerializeField] private AudioSource _alarmAudioSource;
-    [SerializeField] private TriggerZone _triggerZone;
     private float _changeSpeed = 0.1f;
     private Coroutine _volumeCoroutine;
 
     private void Awake()
     {
         _alarmAudioSource.volume = 0;
-    }
-
-    private void OnEnable()
-    {
-        _triggerZone.RobberEntered += Ring;
-        _triggerZone.RobberExited += StopRing;
-    }
-
-    private void OnDisable()
-    {
-        _triggerZone.RobberEntered -= Ring;
-        _triggerZone.RobberExited -= StopRing;
     }
 
     private IEnumerator ChangeVolume(float value)
@@ -39,7 +26,7 @@ public class AlarmRing : MonoBehaviour
             _alarmAudioSource.Stop();
     }
 
-    private void Ring()
+    public void Ring()
     {
         float maxValue = 1f;
         _alarmAudioSource.loop = true;
@@ -51,7 +38,7 @@ public class AlarmRing : MonoBehaviour
         _volumeCoroutine = StartCoroutine(ChangeVolume(maxValue));
     }
 
-    private void StopRing()
+    public void StopRing()
     {
         float minValue = 0f;
 
